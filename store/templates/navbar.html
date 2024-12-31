@@ -1,0 +1,44 @@
+<!-- Navigation-->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container px-4 px-lg-5">
+        <a class="navbar-brand" href="{% url 'acceuil' %}">MarketEase</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <li class="nav-item"><a class="nav-link active" aria-current="page" href="{% url 'acceuil' %}">Accueil</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">À propos</a></li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'deconnecter' %}">Se déconnecter</a></li>
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'connecter' %}">Se connecter</a></li>
+                
+                    <li class="nav-item"><a class="nav-link" href="{% url 'inscrire' %}">S'inscrire</a></li>
+
+                    {% endif %}
+                
+
+<li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="{% url 'acceuil' %}">Tous les produits</a></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li><a class="dropdown-item" href="{% url 'categories' 'livres'  %}">Livres</a></li>
+                        <li><a class="dropdown-item" href="{% url 'categories' 'chocolat'  %}">Chocolats</a></li>
+                        <li><a class="dropdown-item" href="{% url 'categories' 'biscuit'  %}">Biscuits</a></li>
+
+                    </ul>
+                </li>
+            </ul>
+            <form class="d-flex">
+                <a href="{% url 'cart_sum' %}" class="btn 
+                btn-outline-dark">
+                    <i class="bi-cart-fill me-1"></i>
+                    Cart
+                    <span class="badge bg-dark text-white ms-1 rounded-pill" id="cart_quantity">{{carte1}}</span>
+                </a>
+            </form>
+            
+            
+        </div>
+    </div>
+</nav>

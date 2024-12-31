@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <br />
+    <div class="card mb-3">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <img src="{{ produit.image.url }}" class="img-fluid rounded-start" alt="{{ produit.nom }}">
+            </div>
+            <div class="col-md-8">
+                <div class="card-body text-center">
+                    <h5 class="card-title">{{ produit.nom }}</h5>
+                    <p class="card-text">{{ produit.description }}</p>
+                    <p class="card-text">
+                        {% if produit.is_sale and produit.sale_prix > 0 %}
+                            <strike>${{ produit.prix }}</strike>&nbsp;${{ produit.sale_prix }}
+                        {% else %}
+                            ${{ produit.prix }}
+                        {% endif %}
+                    </p>
+                    <br/><br/>
+                    <div class="row justify-content-center">
+                        <div class="col-md-2">Quantity:</div>
+                        <div class="col-md-2"> 
+                            <select class="form-select form-select-sm" id="qty-cart">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select> 
+                        </div>
+                    </div>
+                    <br/><br/>
+                    <a href="{% url 'acceuil' %}" class="btn btn-secondary">Acceuil</a>
+                    <button type="button" value="{{ produit.id }}" class="btn btn-secondary" id="add-cart">Ajouter à la carte</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).on('click', '#add-cart', function(e) {
+    e.preventDefault();  
+
+    var produitId = $(this).val();  // Récupère l'ID du produit
+
+    if (produitId) {
+        var produitQty = $('#qty-cart').val();  // Utilise val() pour récupérer la quantité sélectionnée
+
+        $.ajax({
+            type: 'POST',
+            url: '{% url "cart_ajouter" %}',  // Assurez-vous que l'URL est correcte
+            data: {
+                produit_id: produitId,  // Passez l'ID du produit
+                produit_qty: produitQty,  // Passez la quantité sélectionnée
+                csrfmiddlewaretoken: '{{ csrf_token }}',  // Token CSRF pour la sécurité
+                action: 'post'  // Action pour vérifier que c'est une requête POST
+            },
+
+            success: function(json) {
+                console.log("Réponse reçue:", json);  // Affichez la réponse pour déboguer
+                if (json.qty) {
+                    // Si la quantité est retournée, mettez à jour l'affichage
+                    document.getElementById('cart_quantity').textContent = json.qty;
+                }
+            },
+            error: function(xhr, errmsg, err) {
+                console.error("Erreur AJAX : " + errmsg);  // Affichez l'erreur dans la console
+            }
+        });
+    } else {
+        console.error('Produit ID manquant');  // Si l'ID du produit est manquant, affichez une erreur
+    }
+});
+</script>
+
+{% endblock %}

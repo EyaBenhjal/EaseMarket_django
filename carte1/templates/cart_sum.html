@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <!-- Header -->
+    <header class="bg-dark py-5">
+        <div class="container px-4 px-lg-5 my-5">
+            <div class="text-center text-white">
+                <h1 class="display-4 fw-bolder">Carte d'achat</h1>
+                <p class="lead fw-normal text-white-50 mb-0">Voir votre carte</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Section -->
+    <div class="container">
+        {% if cart_produits %}
+            {% for produit in cart_produits %}
+                <div class="container">
+                    <br />
+                    <div class="card mb-3">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                                <img src="{{ produit.image.url }}" class="img-fluid rounded-start" alt="{{ produit.nom }}">
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">{{ produit.nom }}</h5>
+                                    <p class="card-text">{{ produit.description }}</p>
+                                    <p class="card-text">
+                                        {% if produit.is_sale and produit.sale_prix > 0 %}
+                                            <strike>${{ produit.prix }}</strike>&nbsp;${{ produit.sale_prix }}
+                                        {% else %}
+                                            ${{ produit.prix }}
+                                        {% endif %}
+                                        <br/><br/>
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-2">Quantity:</div>
+                                            <div class="col-md-2">
+                                                <select class="form-select form-select-sm" id="qty-cart-{{ produit.id }}">
+                                                    {% for quantity in quantity_range %}
+                                                        <option value="{{ quantity }}" {% if quantity == produit.quantity %}selected{% endif %}>{{ quantity }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <br/>
+                                    </p>
+                                    <a href="{% url 'acceuil' %}" class="btn btn-secondary">Acceuil</a>
+                                    <button type="button" data-produit-id="{{ produit.id }}" class="btn btn-secondary update-cart">Mettre à jour</button>
+                                    <button type="button" data-produit-id="{{ produit.id }}" class="btn btn-danger delete-cart">Supprimer</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>Aucun produit dans le panier...</p>
+        {% endif %}
+    </div>
+
+    <br/><br/><br/><br/><br/><br/><br/><br/>
+
+    <script>
+        // Mise à jour de la quantité du produit dans le panier
+        document.querySelectorAll('.update-cart').forEach(button => {
+            button.addEventListener('click', function () {
+                const produitId = this.getAttribute('data-produit-id');
+                const qtySelect = document.getElementById('qty-cart-' + produitId);
+                
+                if (qtySelect) {
+                    const produitQty = qtySelect.value;
+
+                    // Envoi de la nouvelle quantité au backend
+                    fetch("{% url 'cart_modifier' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            action: 'update',
+                            produit_id: produitId,
+                            produit_qty: produitQty
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert("Le panier a été mis à jour.");
+                        } else {
+                            alert("Une erreur est survenue.");
+                        }
+                    })
+                    .catch(error => {
+                        alert("Une erreur est survenue lors de la mise à jour.");
+                    });
+                }
+            });
+        });
+
+        // Suppression d'un produit du panier
+        document.querySelectorAll('.delete-cart').forEach(button => {
+            button.addEventListener('click', function () {
+                const produitId = this.getAttribute('data-produit-id');
+
+                // Demander confirmation avant de supprimer
+                if (confirm("Êtes-vous sûr de vouloir supprimer ce produit du panier ?")) {
+                    // Envoi de la demande de suppression au backend
+                    fetch("{% url 'cart_supprimer' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            produit_id: produitId
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Retirer le produit de l'interface
+                            const produitElement = document.getElementById('cart-item-' + produitId);
+                            if (produitElement) {
+                                produitElement.remove();
+                            }
+                            alert("Le produit a été supprimé du panier.");
+                        } else {
+                            alert("Une erreur est survenue lors de la suppression.");
+                        }
+                    })
+                    .catch(error => {
+                        alert("Une erreur est survenue lors de la suppression.");
+                    });
+                }
+            });
+        });
+    </script>
+{% endblock %}
